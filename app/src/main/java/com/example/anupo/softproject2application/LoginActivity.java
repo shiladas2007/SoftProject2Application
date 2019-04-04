@@ -47,7 +47,19 @@ public class LoginActivity extends AppCompatActivity {
         
         //Modified By Shila on 4 Apr 2019
          //for login calling api (sample username:anu@anu.com, pwd: Cen@123) is a valid user for testing
-        new HTTPAsyncTask().execute("http://bookapi-dev.us-east-1.elasticbeanstalk.com/api/UserWithRoles/login");
+        String res=new HTTPAsyncTask().execute("http://bookapi-dev.us-east-1.elasticbeanstalk.com/api/UserWithRoles/login");
+        //now check for valid user this is the reponse, for validating the user, check the result for success or message for 'profile found'
+        /*{
+  "statusCode": 200,
+  "result": "success",
+  "message": "profile found",
+  "profile": {
+    "uId": "63456bed-b6f7-43f8-9cc4-a5c4ba3b7e77",
+    "uEmail": "anu@anu.com",
+    "uPhoneNumber": "12345",
+    "role": ""
+  }
+}*/
         
         
 
@@ -155,8 +167,9 @@ public class LoginActivity extends AppCompatActivity {
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
-        protected void onPostExecute(String result) {
-            res.setText(result);
+        protected String onPostExecute(String result) {
+           // res.setText(result);
+            return result;
         }
         private String HttpPost(String myUrl) throws IOException, JSONException {
             String result = "";
