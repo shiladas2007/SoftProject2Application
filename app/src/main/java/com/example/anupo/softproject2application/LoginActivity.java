@@ -43,6 +43,13 @@ public class LoginActivity extends AppCompatActivity {
     public void loginBtn_OnClick(View view) {
         String _username = usernameEditText.getText().toString();
         String _password = passwordEditText.getText().toString();
+        
+        
+        //Modified By Shila on 4 Apr 2019
+         //for login calling api (sample username:anu@anu.com, pwd: Cen@123) is a valid user for testing
+        new HTTPAsyncTask().execute("http://bookapi-dev.us-east-1.elasticbeanstalk.com/api/UserWithRoles/login");
+        
+        
 
         if(validate(_username,_password))
         {
@@ -128,5 +135,84 @@ public class LoginActivity extends AppCompatActivity {
         MenuInflater inflater=getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+    //added by shila on 4 apr 2019
+    //new class for handling post request from api
+    private class HTTPAsyncTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                try {
+                    return HttpPost(urls[0]);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return "Error!";
+                }
+            } catch (IOException e) {
+                return "Unable to retrieve web page. URL may be invalid.";
+            }
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            res.setText(result);
+        }
+        private String HttpPost(String myUrl) throws IOException, JSONException {
+            String result = "";
+            String JsonResult = null;
+            StringBuffer sb = new StringBuffer();
+            InputStream is = null;
+            URL url = new URL(myUrl);
+
+            // 1. create HttpURLConnection
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+
+            // 2. build JSON object
+            JSONObject jsonObject = buidJsonObject();
+
+            // 3. add JSON content to POST request body
+            setPostRequestContent(conn, jsonObject);
+
+            // 4. make POST request to the given URL
+            //conn.connect();
+            is = new BufferedInputStream(conn.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String inputLine = "";
+            while ((inputLine = br.readLine()) != null) {
+                sb.append(inputLine);
+            }
+            JsonResult = sb.toString();
+
+            // 5. return response message
+            return JsonResult;//conn.getResponseMessage()+"";
+
+        }
+        private JSONObject buidJsonObject() throws JSONException {
+
+            JSONObject jsonObject = new JSONObject();
+         
+            //for login--begin
+            jsonObject.accumulate("email", usernameEditText.getText()); //test with this value "anu@anu.com"
+            jsonObject.accumulate("password", passwordEditText.getText()); //test with this value "Cen@123"
+            //for login--end
+          
+    
+
+            return jsonObject;
+        }
+        private void setPostRequestContent(HttpURLConnection conn,
+                                           JSONObject jsonObject) throws IOException {
+
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+            writer.write(jsonObject.toString());
+            Log.i(MainActivity.class.toString(), jsonObject.toString());
+            writer.flush();
+            writer.close();
+            os.close();
+        }
     }
 }
